@@ -70,12 +70,15 @@ ORDER BY 2 DESC
 -- By income the "High Income" bracket has the highest number of deaths at 2,985,572
 -- By continent Europe has the highest number of deaths at 2,100,197
 
-SELECT location
+SELECT location AS name
 		, MAX(total_deaths) AS total_death_count
+		, CASE WHEN location LIKE '%income%' THEN 'Income Bracket'
+		ELSE 'Continent'
+		END AS type
 FROM [covid-deaths]
-WHERE continent IS NULL AND location <> 'World'
+WHERE continent IS NULL AND location NOT IN ('World', 'European Union')
 GROUP BY location
-ORDER BY 2 DESC
+ORDER BY 3, 2 DESC
 
 -- Showing the total number of deaths across the entire world
 -- 7,046,320 people have died of Covid-19 worldwide
@@ -120,6 +123,17 @@ WHERE deaths.continent IS NOT NULL
 )
 SELECT *, ROUND((rolling_total_vaccinations / population) * 100, 2) AS percent_vaccinated
 FROM pop_vs_vac
+
+-- Rolling percent infected over time by country
+
+SELECT location
+		, population
+		, date
+		, MAX(total_cases) AS highest_infection_count
+		, ROUND(MAX((total_cases/population) * 100), 2) AS perccent_infected
+FROM [covid-deaths]
+GROUP BY location, population, date
+ORDER BY ROUND(MAX((total_cases/population) * 100), 2) DESC, date DESC
 
 -- Creating a view to store data for later visualizations
 
